@@ -2,9 +2,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import Login from '@/components/Login.vue';
-import Home from '../views/HomeView.vue';
-import Profile from '../views/PlayerProfile.vue'
+import Home from '@/views/HomeView.vue';
+import Teams from '@/views/TeamListView.vue'
+import Team from '@/views/Team.vue'
+import Profile from '@/views/PlayerProfile.vue'
 import SignupView from '@/views/SignupView.vue';
+import CreateNewSeasonView from '@/components/CreateNewSeasonItem.vue';
+import FixtureView  from '@/views/FixtureView.vue';
 const routes = [
   { path: '/login', name: 'Login', component: Login },
   { 
@@ -20,9 +24,33 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/teams',
+    name: 'Teams',
+    component: Teams,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/seasons/new',
+    name: 'CreateNewSeasonView',
+    component: CreateNewSeasonView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/teams/:name',
+    name: 'Team',
+    component: Team,
+    meta: { requiresAuth: true }
+  },
+  {
     path: "/signup",
     name: 'Signup',
     component: SignupView
+  },
+  {
+    path: "/fixtures/:id",
+    name: 'Fixtures',
+    component: FixtureView,
+    meta: { requiresAuth: true }
   }
 ];
 

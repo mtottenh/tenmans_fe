@@ -2,11 +2,14 @@
 import { RouterLink, RouterView } from 'vue-router'
 import LogoutLink from '@/components/LogoutLink.vue';
 import { useAuthStore } from './stores/authStore';
+import IconCS10 from './components/icons/IconCS10.vue';
 
+const authStore = useAuthStore()
 </script>
 
 <template>
   <header>
+    <IconCS10/>
     <div class="wrapper">
       <nav>
         <div>
@@ -16,10 +19,16 @@ import { useAuthStore } from './stores/authStore';
         <RouterLink to="/me">Profile</RouterLink>
       </div>
       <div>
-        <LogoutLink v-if="useAuthStore().isAuthenticated"/>
+        <RouterLink to="/teams">Teams</RouterLink>
       </div>
       <div>
-        <RouterLink to="/signup" v-if="!useAuthStore().isAuthenticated">Signup</RouterLink>
+        <LogoutLink v-if="authStore.isAuthenticated"/>
+      </div>
+      <div>
+        <RouterLink to="/signup" v-if="!authStore.isAuthenticated">Signup</RouterLink>
+      </div>
+      <div>
+        <RouterLink to="/seasons/new" v-if="authStore.getRole() == 'admin'">Seasons</RouterLink>
       </div>
       </nav>
     </div>

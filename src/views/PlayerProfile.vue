@@ -33,7 +33,6 @@
 
 <script>
 import axios from '@/axios'
-import { useAuthStore } from '@/stores/authStore';
 export default {
     data() {
         return {
@@ -44,8 +43,6 @@ export default {
     },
     methods: {
         async getPlayerDetails() {
-            const authStore = useAuthStore()
-
             try {
                 const response = await axios.get('/players/me')
                 this.user = response.data

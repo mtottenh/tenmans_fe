@@ -28,7 +28,6 @@
 </template>
 
 <script>
-import { useAuthStore } from '@/stores/authStore';
 import axios from '@/axios';
  export default {
    data() {
@@ -43,8 +42,6 @@ import axios from '@/axios';
    },
    methods: {
    async signup() {
-     const authStore = useAuthStore();
-
      try {
 
        const result = await axios.post('players/signup',{"name": this.name, "email":this.email, "SteamID":this.SteamID, "password":this.password})
