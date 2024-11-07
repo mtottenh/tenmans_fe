@@ -4,13 +4,13 @@ export const useTeamMemberStore = defineStore('teamMember', {
     state: () => ({
         activeMembers: [],
         pendingMembers: [],
-        team: null,
+        team_name: '',
         captains: [],
     }),
     getters: {
         getActiveMembers: (state) => state.activeMembers,
         getPendingMembers: (state) => state.pendingMembers,
-        getTeam: (state) => state.team,
+        getTeamName: (state) => state.team_name,
         getCaptains: (state) => state.captains
     },
     actions: {
@@ -29,21 +29,30 @@ export const useTeamMemberStore = defineStore('teamMember', {
             }
 
         },
-        setTeam(t) {
-            this.team = t
+        setTeamName(t) {
+            this.team_name = t
         },
         setCaptains(c) {
             this.captains = c
         },
         clearActiveMembers() {
-            this.activeMembers.length = 0
+            this.activeMembers = []
         },
         clearPendingMembers() {
-            this.pendingMembers.length = 0
+            this.pendingMembers = []
+        },
+        clearCaptains() {
+            this.captains = []
+        },
+        clearTeam() {
+            this.team_name = '';
         },
         clear(){
+            this.clearCaptains();
+            this.clearTeam();
             this.clearActiveMembers();
             this.clearPendingMembers();
+
         }
     }
 });

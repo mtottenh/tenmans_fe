@@ -1,78 +1,108 @@
 <template>
     <div class="team">
-    <h1 v-if="this.team">Team: {{ team.name }} </h1>
+    <h1 v-if="team_name">Team: {{ team_name }} </h1>
     <h2>Captains</h2>
-    <ul v-if="this.captains">
-        <li v-for="c in this.captains"> {{ c.name }}</li>
+    <ul v-if="captains">
+        <li v-for="c in captains" :key="c.uid"> {{ c.name }}</li>
     </ul>
     <h2>Active Roster</h2>
     <ul>
-        <li v-for="p in this.active_members">{{ p.name }}</li>
+        <li v-for="p in active_members" :key="p.uid">{{ p.name }}</li>
     </ul>
     <h2>Join Requests</h2>
     <ul>
-        <li v-for="p in this.pending_members">{{ p.name }} <button v-if="this.currentUserIsCaptain()" @click="acceptJoinRequest(p.uid)" > Accept Request</button></li>
+        <li v-for="p in pending_members" :key="p.uid">{{ p.name }} <button v-if="currentUserIsCaptain" @click="acceptJoinRequest(p.uid)" > Accept Request</button></li>
     </ul>
-    {{ this.errorMessage }}
+    {{ errorMessage }}
 </div>
 </template>
 
 <script>
-    import axios from '@/axios'
-    import { useAuthStore } from '@/stores/authStore';
+import { computed, onMounted, watch } from 'vue';
+import axios from '@/axios';
+import { useAuthStore } from '@/stores/authStore';
 import { useTeamMemberStore } from '@/stores/teamMemberStore';
-    export default {
-        setup () {
-            const teamMemberStore = useTeamMemberStore();
-            const authStore = useAuthStore();
-            var errorMessage='';
+import { useRoute } from 'vue-router';
 
-            const  getTeamDetails = async (teamName) => {
-                try {
-                    const currentUserId = authStore.getPlayerId();
-                    teamMemberStore.clear();
-                    const response = await axios.get('/teams/name/' + teamName)
-                    teamMemberStore.setTeam(response.data);
-                    const captain_response = await axios.get('/teams/name/' + teamName + '/captains')
-                    teamMemberStore.setCaptains(captain_response.data);
-                    const roster_response = await axios.get('/teams/name/' + teamName + '/roster')
-                    console.log(roster_response.data[0])
-                    roster_response.data.forEach((p) => {
-                        console.log("Checking " + p.player.name)
-                        if (p.pending) {
-                            console.log("Adding pending member: " + p.player.name)
-                            teamMemberStore.addPenddingMember(p.player);
-                        } else {
-                            console.log("Adding active member: " + p.player.name)
-                            teamMemberStore.addActiveMember(p.player);
-                        }
-                    });
-                } catch (error) {
-                    console.log(error)
-                    errorMessage = error.message
-                }
-                console.log("Team " + teamMemberStore.team.name)
-            }
-            const acceptJoinRequest = async (player_uid) => {
-                try {
-                    console.log("Sending PATCH request")
-                    const team_name = teamMemberStore.team.name
-                    const response = await axios.patch('/teams/name/' + team_name + '/roster/active', { 'player': { 'id' : player_uid}} )
-                    teamMemberStore.setMemberActive({uid: player_uid})
-                } catch (error) {
-                    console.log(error)
-                    errorMessage = error.message
-                }
-            }
-            const currentUserIsCaptain = () => {
-                const currentUserId = authStore.getPlayerId();
-                return  teamMemberStore.captains.some( player => player.uid === currentUserId)
-            }
-            return { errorMessage: '', active_members: teamMemberStore.activeMembers, pending_members: teamMemberStore.pendingMembers, team: teamMemberStore.team, captains: teamMemberStore.captains,  currentUserIsCaptain, getTeamDetails, acceptJoinRequest, } 
-        },
-        async beforeMount() {
-            await this.getTeamDetails(this.$route.params.name);
-        },
+export default {
+    setup() {
+        const route = useRoute();
+        const teamMemberStore = useTeamMemberStore();
+        const authStore = useAuthStore();
+        let errorMessage = '';
 
-    };
+        // Computed properties for reactive store data
+        const captains = computed(() => teamMemberStore.captains);
+        const active_members = computed(() => teamMemberStore.activeMembers);
+        const pending_members = computed(() => teamMemberStore.pendingMembers);
+        const team_name = computed(() => teamMemberStore.team_name);
+
+        const getTeamDetails = async (teamName) => {
+            try {
+                const response = await axios.get('/teams/name/' + teamName);
+                teamMemberStore.setTeamName(response.data.name);
+
+                const captainResponse = await axios.get('/teams/name/' + teamName + '/captains');
+                teamMemberStore.setCaptains([...captainResponse.data]); // Use new array reference
+
+                const rosterResponse = await axios.get('/teams/name/' + teamName + '/roster');
+                teamMemberStore.clearActiveMembers();
+                teamMemberStore.clearPendingMembers();
+                rosterResponse.data.forEach((p) => {
+                    if (p.pending) {
+                        teamMemberStore.addPenddingMember(p.player);
+                    } else {
+                        teamMemberStore.addActiveMember(p.player);
+                    }
+                });
+            } catch (error) {
+                console.error(error);
+                errorMessage = error.message;
+            }
+        };
+
+        const acceptJoinRequest = async (player_uid) => {
+            try {
+                const team_name = teamMemberStore.team?.name;
+                await axios.patch('/teams/name/' + team_name + '/roster/active', { player: { id: player_uid } });
+                teamMemberStore.setMemberActive({ uid: player_uid });
+            } catch (error) {
+                console.error(error);
+                errorMessage = error.message;
+            }
+        };
+
+        const currentUserIsCaptain = computed(() => {
+            const currentUserId = authStore.getPlayerId();
+            return teamMemberStore.captains.some(player => player.uid === currentUserId);
+        });
+
+        const refreshTeamDetails = async (teamName) => {
+            teamMemberStore.clear(); // Clear the store data before fetching new details
+            await getTeamDetails(teamName); // Fetch new data
+        };
+
+        watch(
+            () => route.params.name,
+            (newTeamName) => {
+                refreshTeamDetails(newTeamName); // Refresh details on route change
+            },
+            { immediate: true } // Load immediately on component mount
+        );
+
+        onMounted(() => {
+            refreshTeamDetails(route.params.name);
+        });
+
+        return {
+            errorMessage,
+            captains,
+            active_members,
+            pending_members,
+            team_name,
+            currentUserIsCaptain,
+            acceptJoinRequest
+        };
+    },
+};
 </script>

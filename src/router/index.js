@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/authStore';
 import Login from '@/components/Login.vue';
 import Home from '@/views/HomeView.vue';
 import Teams from '@/views/TeamListView.vue'
-import Team from '@/views/Team.vue'
+import Team from '@/views/TeamView.vue'
 import Profile from '@/views/PlayerProfile.vue'
 import SignupView from '@/views/SignupView.vue';
 import CreateNewSeasonView from '@/components/CreateNewSeasonItem.vue';
