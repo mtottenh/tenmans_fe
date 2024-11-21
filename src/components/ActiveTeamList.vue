@@ -1,13 +1,28 @@
 <!-- src/components/ActiveTeamList.vue -->
 <template>
-    <div class="active-team-list">
-       <li v-for="team in this.teams"><router-link :to="{ name: 'Team', params: { name: team.name}}">{{ team.name }}</router-link>
-        <button @click="requestRosterJoin(team.name)">Request to join Team Roster</button>
-      <!--<p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-      <p v-if="signupSuccess">Season named '{{  signupSuccess.name }}' created successfuly.</p>
-      -->
-       </li>
-    </div>
+    <v-container fluid>
+    <v-layout class="d-flex flex-column ga-3">
+        <!-- <v-card>
+            <v-card-title></v-card-title>
+            <v-card-text> -->
+            <!-- <v-list>
+                <v-list-item v-for="team in this.teams"> -->
+                    <v-card class="mx-auto " v-for="team in this.teams">
+                        <v-card-title></v-card-title>
+                        <v-card-text >
+
+                            <v-btn variant="outlined" color="secondary" :to="{ name: 'Team', params: { name: team.name } }">{{ team.name }}</v-btn> 
+                        <!-- <v-card-actions> -->
+                            <v-btn  @click="requestRosterJoin(team.name)" append-icon="mdi-chevron-right" variant="outlined" color="secondary"> Request to join Team Roster</v-btn>
+                        <!-- </v-card-actions> -->
+                        </v-card-text>
+                    </v-card>
+                <!-- </v-list-item>
+            </v-list> -->
+        <!-- </v-card-text>
+        </v-card> -->
+    </v-layout>
+</v-container>
 </template>
 
 
@@ -47,3 +62,12 @@ import { useAuthStore } from '@/stores/authStore';
 
     };
 </script>
+<style scoped>
+.team-req-btn-div {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.team-router-link {
+    color: #FFB300;
+}
+</style>

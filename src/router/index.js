@@ -9,6 +9,12 @@ import Profile from '@/views/PlayerProfile.vue'
 import SignupView from '@/views/SignupView.vue';
 import CreateNewSeasonView from '@/components/CreateNewSeasonItem.vue';
 import FixtureView  from '@/views/FixtureView.vue';
+import SeasonView from '@/views/SeasonView.vue';
+import SeasonAdminView from '@/views/SeasonAdminView.vue';
+import LogoutLink from '@/components/LogoutLink.vue';
+import KnockoutTourney from '@/views/KnockoutTourney.vue';
+import PugView from '@/views/PugView.vue';
+
 const routes = [
   { path: '/login', name: 'Login', component: Login },
   { 
@@ -19,6 +25,12 @@ const routes = [
   },
   {
     path: '/me',
+    name: 'MyPlayerProfile',
+    component: Profile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/player/:name',
     name: 'PlayerProfile',
     component: Profile,
     meta: { requiresAuth: true }
@@ -36,6 +48,30 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/seasons/current',
+    name: 'SeasonView',
+    component: SeasonView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/seasons/tournament",
+    name: "Tournament",
+    component: KnockoutTourney,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/pugs/new",
+    name: "PugView",
+    component: PugView,
+    meta: {requiresAuth: true }
+  },
+  {
+    path: '/seasons/:id/admin',
+    name: 'SeasonAdminView',
+    component: SeasonAdminView,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/teams/:name',
     name: 'Team',
     component: Team,
@@ -48,8 +84,14 @@ const routes = [
   },
   {
     path: "/fixtures/:id",
-    name: 'Fixtures',
+    name: 'Fixture',
     component: FixtureView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/logout",
+    name: 'Logout',
+    component: LogoutLink,
     meta: { requiresAuth: true }
   }
 ];

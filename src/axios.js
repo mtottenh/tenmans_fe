@@ -72,6 +72,7 @@ instance.interceptors.response.use(
           return Promise.reject(refreshError);
         }
       }
+      // Should we force a logout here? Perhaps on a 403?
       return Promise.reject(error);
     }
   );

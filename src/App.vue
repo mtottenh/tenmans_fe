@@ -2,101 +2,61 @@
 import { RouterLink, RouterView } from 'vue-router'
 import LogoutLink from '@/components/LogoutLink.vue';
 import { useAuthStore } from './stores/authStore';
-import IconCS10 from './components/icons/IconCS10.vue';
 
-const authStore = useAuthStore()
+const authStore = useAuthStore();
+const getLinksForRole = (links) => {
+      const role = authStore.getRole();
+      return links.filter( (item) => (item.notLoggedIn && !authStore.isAuthenticated) || (authStore.isAuthenticated && !item.notLoggedIn && (!item.role || item.role == role)));
+    }
+
 </script>
-
 <template>
-  <header>
-    <IconCS10/>
-    <div class="wrapper">
-      <nav>
-        <div>
-        <RouterLink to="/">Home</RouterLink>
-      </div>
-      <div>
-        <RouterLink to="/me">Profile</RouterLink>
-      </div>
-      <div>
-        <RouterLink to="/teams">Teams</RouterLink>
-      </div>
-      <div>
-        <LogoutLink v-if="authStore.isAuthenticated"/>
-      </div>
-      <div>
-        <RouterLink to="/signup" v-if="!authStore.isAuthenticated">Signup</RouterLink>
-      </div>
-      <div>
-        <RouterLink to="/seasons/new" v-if="authStore.getRole() == 'admin'">Seasons</RouterLink>
-      </div>
-      </nav>
-    </div>
-  </header>
+  <v-app>
+  <v-app-bar app color="primary" dark>
+    <v-toolbar-title color="secondary">CS2 10 Mans</v-toolbar-title>
+    <v-spacer></v-spacer>
+    <!-- Navigation Links -->
+      <v-btn v-for="link in getLinksForRole(links)" :key="link.path" text>
+        <router-link :to="link.path" class="nav-link">{{ link.name }}</router-link>
+      </v-btn>
+  </v-app-bar>
 
-  <RouterView />
+  <!-- Main Content with Route Rendering -->
+  <v-main>
+    <router-view />
+  </v-main>
+  </v-app>
 </template>
 
+<script>
+export default {
+  data() {
+    return {
+      links: [
+        { name: 'Home', path: '/' },
+        { name: 'My Profile', path: '/me' },
+        { name: 'Teams', path: '/teams' },
+        { name: 'Sign Up', path: '/signup', notLoggedIn: true },
+        { name: 'Logout', path: '/logout' },
+        { name: 'Current Season', path: '/seasons/current' },
+        { name: 'New Season', path: '/seasons/new', role: 'admin' },
+      ]
+    };
+  },
+};
+</script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.v-toolbar-title {
+  color: #FF6F00;
+}
+.nav-link {
+  color: #FF6F00;
+  text-decoration: none;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.nav-link.router-link-active {
+  font-weight: bold;
+  text-decoration: underline;
 }
 </style>

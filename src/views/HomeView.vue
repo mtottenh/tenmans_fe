@@ -1,10 +1,5 @@
-<script setup>
-import TheWelcome from '../components/TheWelcome.vue'
-</script>
 
 <template>
-  <main>
-    <!-- <TheWelcome /> -->
      <h1>Welcome to the CS2 10 Man League</h1>
 
      <p>The league runs in Seasons:</p>
@@ -24,5 +19,4 @@ import TheWelcome from '../components/TheWelcome.vue'
       <li>The captain for the opposing team must approve the submitted result</li>
       <li>The results tab indicates each teams league standing based on results that have been approved</li>
      </ul>
-  </main>
 </template>

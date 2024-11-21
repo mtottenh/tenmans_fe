@@ -2,17 +2,25 @@
 <template>
     <div class="login">
       <h2>Login</h2>
-      <form @submit.prevent="login">
-        <div>
-          <label for="email">Email </label>
-          <input type="email" v-model="email" required />
-        </div>
-        <div>
-          <label for="password">Password </label>
-          <input type="password" v-model="password" required />
-        </div>
-        <button type="submit">Login</button>
-      </form>
+      <v-form @submit.prevent="login">
+        <v-text-field
+          v-model="email"
+          type="email"
+          required
+          class="mt-required"
+          label="Email"
+        >
+        </v-text-field>
+        <v-text-field
+          v-model="password"
+          type="password"
+          required
+          class="mt-required"
+          label="Password"
+        >
+        </v-text-field>
+        <v-btn @click="login">Login</v-btn>
+      </v-form>
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     </div>
   </template>

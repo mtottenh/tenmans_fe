@@ -1,49 +1,72 @@
 <template>
-    <div>
-      <h1>Fixture Details</h1>
-      
-      <div v-if="fixture">
-        <p><strong>Season:</strong> {{ fixture.season }}</p>
-        
-        <!-- Display team details with names -->
-        <p><strong>Teams:</strong> 
-          <span v-if="team1">{{ team1.name }}</span> vs <span v-if="team2">{{ team2.name }}</span>
-        </p>
-        
-        <!-- Display and update scheduled date -->
-        <p><strong>Scheduled At:</strong> {{ formattedScheduledDate }}</p>
-        <label for="newDate">Reschedule Date:</label>
-        <input 
-          type="datetime-local" 
-          v-model="newScheduledDate" 
-          @change="formatScheduledDate"
-        />
-        <button @click="updateFixtureDate">Update Date</button>
-  
-        <!-- Display result -->
-        <h2>Result</h2>
-        <div v-if="result">
-          <p>{{ team1 ? team1.name : 'Team 1' }}: {{ result.score_team_1 }}</p>
-          <p>{{ team2 ? team2.name : 'Team 2' }}: {{ result.score_team_2 }}</p>
-        </div>
-        <div v-else>
-          <p>No result yet.</p>
-        </div>
-  
-        <!-- Input and submit new result -->
-        <label for="scoreTeam1">Score for {{ team1 ? team1.name : 'Team 1' }}:</label>
-        <input type="number" v-model="newResult.score_team_1" min="0" />
-  
-        <label for="scoreTeam2">Score for {{ team2 ? team2.name : 'Team 2' }}:</label>
-        <input type="number" v-model="newResult.score_team_2" min="0" />
-  
-        <button @click="submitResult">Submit Result</button>
-      </div>
-      <div v-else>
-        <p>Loading fixture data...</p>
-      </div>
-    </div>
-  </template>
+  <v-container fluid>
+    <v-card v-if="fixture">
+      <v-card-title>Fixture Details</v-card-title>
+      <v-card-text>
+        <v-table>
+          <tbody>
+            <tr>
+              <th class="primary-text"><strong>Season:</strong></th>
+              <th>{{ fixture.season }}</th>
+              <th></th>
+              <th></th>
+            </tr>
+            <tr>
+              <th class="primary-text"><strong>Teams:</strong></th>
+              <th><span v-if="team1">{{ team1.name }}</span> </th>
+              <th>vs</th>
+              <th><span v-if="team2">{{ team2.name }}</span></th>
+            </tr>
+            <tr>
+              <th>
+                <strong>Scheduled At:</strong>
+              </th>
+              <th>{{ formattedScheduledDate }}</th>
+            </tr>
+          </tbody>
+        </v-table>
+
+        <v-card v-if="!result">
+          <v-card-title>Reschedule Match</v-card-title>
+          <v-card-text>
+            <v-form ref="form">
+              <v-text-field v-model="newScheduledDate" type="datetime-local" required class="mt-required" clearable
+                label="Reschedule Date"></v-text-field>
+              <v-btn @click="updateFixtureDate">Update Date</v-btn>
+            </v-form>
+          </v-card-text>
+        </v-card>
+
+        <v-card v-if="result">
+          <!-- Display result -->
+          <v-card-title v-if="result.confirmed">Result</v-card-title>
+          <v-card-title v-else>Result Pending Confirmation</v-card-title>
+          <v-card-text>
+            <p>{{ team1 ? team1.name : 'Team 1' }}: {{ result.score_team_1 }}</p>
+            <p>{{ team2 ? team2.name : 'Team 2' }}: {{ result.score_team_2 }}</p>
+          </v-card-text>
+          <v-btn v-if="!result.confirmed" @click="confirmResult" > Confirm Result</v-btn>
+        </v-card>
+          <!-- Input and submit new result -->
+          <v-card v-else>
+            <v-card-title>Submit Results</v-card-title>
+            <v-card-text>
+              <v-form title="Submit Results">
+                <v-text-field v-model="newResult.score_team_1" type="number" required class="mt-required">{{ team1
+                  ? team1.name : 'Team 1' }}:</v-text-field>
+                <v-text-field v-model="newResult.score_team_2" type="number" required class="mt-required">{{ team2
+                  ? team2.name : 'Team 2' }}:</v-text-field>
+                <v-btn @click="submitResult">Submit Result</v-btn>
+              </v-form>
+            </v-card-text>
+          </v-card>
+      </v-card-text>
+    </v-card>
+    <v-card v-else>
+      <v-card-title>Loading fixture data...</v-card-title>
+    </v-card>
+  </v-container>
+</template>
   
   <script>
   
@@ -111,6 +134,17 @@
           console.error("Error fetching result:", error);
         }
       },
+      async confirmResult() {
+        try {
+          const fixtureId = this.$route.params.id;
+          const response = await axios.patch(`fixtures/${fixtureId}/result/confirm`);
+          this.result = response.data;
+          
+        } catch (error) {
+          alert(error.response.data.detail)
+          console.error("Error fetching result:", error);
+        }
+      },
       formatScheduledDate() {
         // Format `newScheduledDate` as "YYYY-MM-DD HH:mm"
         this.newScheduledDate = this.formatDateTime(this.newScheduledDate);
@@ -147,7 +181,8 @@
             score_team_1: this.newResult.score_team_1,
             score_team_2: this.newResult.score_team_2,
           };
-          await axios.post(`fixtures/${fixtureId}/result`, resultData);
+          const respose = await axios.post(`fixtures/${fixtureId}/result`, resultData);
+          this.result = response.data;
           alert("Result submitted successfully!");
           this.fetchResult(); // Refresh the result data after submission
         } catch (error) {

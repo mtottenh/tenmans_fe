@@ -4,7 +4,16 @@
 import Team from '@/components/Team.vue';
 </script>
 <template>
-    <main>
+
         <Team />
-    </main>
+
 </template>
+<style scoped>
+.a {
+  color: #FF6F00;
+}
+.h1 {
+    color: #FF6F00;
+}
+
+</style>
