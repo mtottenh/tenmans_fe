@@ -4,43 +4,43 @@
         <!-- Team Tables -->
         <v-col cols="6">
           <v-card outlined>
-            <v-card-title>{{ team_1_name }}</v-card-title>
+            <v-card-title>{{ team1_name }}</v-card-title>
             <v-card-text>
-              <v-data-table :headers="teamHeaders" :items="team1" item-value="name" class="elevation-1">
+              <v-data-table :headers="teamHeaders" :items="team1" class="elevation-1">
               </v-data-table>
             </v-card-text>
             <v-card-actions>
-              <v-btn @click="joinTeam(team_1_name)" color="warning">Join {{ team_1_name }}</v-btn>
+              <v-btn @click="joinTeam(team1_name)" color="warning">Join {{ team1_name }}</v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
         <v-col cols="6">
           <v-card outlined>
-            <v-card-title>{{ team_2_name }}</v-card-title>
+            <v-card-title>{{ team2_name }}</v-card-title>
             <v-card-text>
               <v-data-table :headers="teamHeaders" :items="team2" item-value="name" class="elevation-1">
               </v-data-table>
             </v-card-text>
             <v-card-actions>
-              <v-btn @click="joinTeam(team_2_name)" color="warning">Join {{ team_2_name }}</v-btn>
+              <v-btn @click="joinTeam(team2_name)" color="warning">Join {{ team2_name }}</v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
       </v-row>
-  
+
       <!-- Map Pool Table -->
       <v-row>
         <v-col>
           <v-card outlined>
             <v-card-title>Map Pool</v-card-title>
             <v-card-text>
-              <v-data-table :headers="mapPoolHeaders" :items="mapPool" item-value="map" class="elevation-1">
+              <v-data-table :headers="mapPoolHeaders" :items="mapPool" item-value="name" class="elevation-1">
               </v-data-table>
             </v-card-text>
           </v-card>
         </v-col>
       </v-row>
-  
+
       <!-- Chat Box -->
       <v-row>
         <v-col>
@@ -71,7 +71,7 @@
       </v-row>
     </v-container>
   </template>
-  
+
   <script>
   import { ref, reactive, onMounted } from "vue";
   import { v4 as uuidv4 } from "uuid";
@@ -87,14 +87,7 @@
         type: String,
         required: true,
       },
-      team_1_name: {
-        type: String,
-        default: "Team 1",
-      },
-      team_2_name: {
-        type: String,
-        default: "Team 2",
-      },
+
       player_name: {
         type: String,
         default: "Player",
@@ -104,6 +97,8 @@
       // State
       const team1 = ref([]);
       const team2 = ref([]);
+      const team1_name = ref("");
+      const team2_name  = ref("");
       const mapPool = ref([]);
       const chatMessages = ref([]);
       const chatMessage = ref("");
@@ -111,7 +106,7 @@
       const mapPoolHeaders = [{ text: "Map Name", value: "map" }];
       let seq_no = 1;
       let websocket;
-  
+
       // Initialize WebSocket and Identify Client
       const connectToWebSocket = () => {
         var type_slug;
@@ -120,9 +115,9 @@
         } else {
             type_slug = "fixtures";
         }
-        
+
         websocket = createWebSocket(`${type_slug}/id/${props.lobby_id}/ws`).connect();
-  
+
         websocket.onopen = () => {
           console.log("WebSocket connected");
           websocket.send(
@@ -133,27 +128,28 @@
             })
           );
         };
-  
+
         websocket.onmessage = (event) => {
           const data = JSON.parse(event.data);
           console.log("Message received:", data);
           handleServerMessage(data);
         };
       };
-  
+
       // Handle server messages
       const handleServerMessage = (data) => {
-        if (data.resp === "map_pool_update") {
+        if (data.resp === "map_picks") {
           mapPool.value = data.map_pool;
-        } else if (data.resp === "team_update") {
-          if (data.team_name === props.team_1_name) {
+        } else if (data.resp === "team_roster") {
+          if (data.team_idx === 1) {
             team1.value = data.players;
-          } else if (data.team_name === props.team_2_name) {
+            team1_name.value = data.team_name
+          } else if (data.team_idx === 2) {
             team2.value = data.players;
+            team2_name.value = data.team_name
           }
         } else if (data.resp === "chat" || data.resp == "team_chat") {
           var slug
-
           if (data.resp === "chat") {
             slug = "[ALL]"
           } else {
@@ -162,7 +158,7 @@
           chatMessages.value.push(`${data.player} ${slug}: ${data.message}`);
         }
       };
-  
+
       // Join a team
       const joinTeam = (teamName) => {
         if (websocket && websocket.readyState === WebSocket.OPEN) {
@@ -175,7 +171,7 @@
           );
         }
       };
-  
+
       // List map pool
       const listMapPool = () => {
         if (websocket && websocket.readyState === WebSocket.OPEN) {
@@ -187,7 +183,7 @@
           );
         }
       };
-  
+
       // Send chat message
       const sendChat = () => {
         if (websocket && websocket.readyState === WebSocket.OPEN && chatMessage.value.trim()) {
@@ -202,7 +198,7 @@
           chatMessage.value = ""; // Clear input field
         }
       };
-  
+
       // Send team chat message
       const sendTeamChat = () => {
         if (websocket && websocket.readyState === WebSocket.OPEN && chatMessage.value.trim()) {
@@ -218,26 +214,28 @@
           chatMessage.value = ""; // Clear input field
         }
       };
-  
+
       // Determine player's team based on presence in team lists
       const determineTeam = () => {
         if (team1.value.some((player) => player.name === props.player_name)) {
-          return props.team_1_name;
+          return team1_name;
         }
         if (team2.value.some((player) => player.name === props.player_name)) {
-          return props.team_2_name;
+          return team2_name;
         }
         return null; // No team assigned
       };
-  
+
       // Lifecycle hook
       onMounted(() => {
         connectToWebSocket(); // Connect to WebSocket using the pug_id
       });
-  
+
       return {
         team1,
         team2,
+        team1_name,
+        team2_name,
         mapPool,
         chatMessages,
         chatMessage,
@@ -250,10 +248,9 @@
     },
   };
   </script>
-  
+
   <style scoped>
   .v-card {
     margin-bottom: 20px;
   }
   </style>
-  
